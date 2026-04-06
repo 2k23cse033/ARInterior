@@ -1,0 +1,2453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script type="module"
+    src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js">
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lumea | Where Every Room Tells a Story</title>
+  <meta name="description" content="Lumea premium interiors, furniture and home decor with immersive AR previews.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --beige-50: #faf7f2;
+      --beige-100: #f5efe6;
+      --beige-200: #ede0cf;
+      --beige-300: #d4b896;
+      --olive-700: #4e5530;
+      --olive-600: #6b7645;
+      --olive-500: #8a9260;
+      --charcoal: #2c2c2c;
+      --gold: #c9a96e;
+      --shadow-soft: 0 10px 40px rgba(78, 85, 48, 0.08);
+      --shadow-strong: 0 20px 55px rgba(44, 44, 44, 0.16);
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 10px;
+      --section-pad: clamp(72px, 10vw, 128px);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--beige-50);
+    }
+
+    body {
+      margin: 0;
+      font-family: "DM Sans", sans-serif;
+      color: var(--charcoal);
+      background: radial-gradient(circle at 20% 0%, #fffdf9, var(--beige-50) 40%), var(--beige-50);
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+
+    .cursor {
+      position: fixed;
+      width: 34px;
+      height: 34px;
+      border: 1.5px solid rgba(212, 184, 150, 0.9);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width .2s ease, height .2s ease, transform .12s ease;
+      backdrop-filter: blur(2px);
+    }
+
+    .cursor::before {
+      content: "";
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--olive-600);
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    @media (pointer: coarse) {
+      body { cursor: auto; }
+      .cursor { display: none; }
+    }
+
+    .container {
+      width: min(1240px, 92vw);
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .section-number {
+      position: absolute;
+      top: -18px;
+      left: 0;
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(4rem, 8vw, 7rem);
+      color: rgba(107, 118, 69, 0.09);
+      pointer-events: none;
+      font-weight: 700;
+      line-height: 0.8;
+    }
+
+    .section-head {
+      position: relative;
+      margin-bottom: 36px;
+      padding-top: 30px;
+    }
+
+    h1, h2, h3, h4 {
+      margin: 0;
+      font-family: "Cormorant Garamond", serif;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    h2 {
+      font-size: clamp(2rem, 3.4vw, 3.2rem);
+      line-height: 1.06;
+    }
+
+    .eyebrow {
+      font-size: 0.84rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--olive-600);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .gold-divider {
+      width: 86px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin-top: 12px;
+    }
+
+    .nav {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(1260px, calc(100% - 24px));
+      z-index: 60;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 20px;
+      padding: 16px 22px;
+      transition: all 0.3s ease;
+      background: rgba(250, 247, 242, 0.55);
+      backdrop-filter: blur(14px);
+    }
+
+    .nav.scrolled {
+      top: 8px;
+      padding: 10px 18px;
+      background: rgba(245, 239, 230, 0.9);
+      box-shadow: 0 10px 30px rgba(107, 118, 69, 0.2);
+      border-color: rgba(201, 169, 110, 0.35);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .leaf-icon {
+      width: 18px;
+      height: 18px;
+      fill: var(--olive-600);
+      opacity: 0.9;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      font-size: 0.95rem;
+      color: #3d402f;
+      font-weight: 500;
+    }
+
+    .nav-links a {
+      position: relative;
+      padding-bottom: 2px;
+    }
+
+    .nav-links a::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -2px;
+      width: 100%;
+      height: 1px;
+      transform: scaleX(0);
+      transform-origin: left;
+      background: var(--olive-600);
+      transition: transform .25s ease;
+    }
+
+    .nav-links a:hover::after,
+    .nav-links a:focus-visible::after { transform: scaleX(1); }
+
+    .nav-icons {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid rgba(107, 118, 69, 0.25);
+      background: rgba(255, 255, 255, 0.55);
+      display: grid;
+      place-items: center;
+      color: var(--olive-700);
+      position: relative;
+      transition: transform .2s ease, background .2s ease;
+    }
+
+    .icon-btn:hover,
+    .icon-btn:focus-visible {
+      transform: translateY(-2px);
+      background: #fff;
+      outline: none;
+    }
+
+    .badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 100px;
+      font-size: 0.66rem;
+      background: var(--gold);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      padding: 0 5px;
+      font-weight: 700;
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      align-items: center;
+      padding: 130px 0 72px;
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.17'/%3E%3C/svg%3E");
+      mix-blend-mode: soft-light;
+      opacity: 0.45;
+      animation: grainShift 9s steps(6) infinite;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    @keyframes grainShift {
+      0% { transform: translate(0, 0); }
+      25% { transform: translate(1.5%, -1.8%); }
+      50% { transform: translate(-1.7%, 1.2%); }
+      75% { transform: translate(1%, 1.5%); }
+      100% { transform: translate(0, 0); }
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: clamp(22px, 5vw, 60px);
+      align-items: center;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.6rem, 7.2vw, 6rem);
+      line-height: 0.9;
+      letter-spacing: -0.02em;
+      color: #252525;
+      margin-bottom: 22px;
+      max-width: 10ch;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 44ch;
+      font-size: clamp(1rem, 1.3vw, 1.2rem);
+      color: #4a4a4a;
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      margin-top: 28px;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 13px 24px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:hover,
+    .btn:focus-visible {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(44, 44, 44, 0.12);
+      outline: none;
+    }
+
+    .btn-primary {
+      background: var(--olive-600);
+      color: #fff;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--olive-700);
+      border: 1px solid rgba(107, 118, 69, 0.55);
+    }
+
+    .hero-badge {
+      position: absolute;
+      top: 112px;
+      right: 8vw;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(201, 169, 110, 0.5);
+      border-radius: 100px;
+      padding: 9px 14px;
+      font-size: 0.8rem;
+      color: var(--olive-700);
+      animation: pulse 2.4s infinite;
+      backdrop-filter: blur(10px);
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(201, 169, 110, 0.32); }
+      70% { box-shadow: 0 0 0 14px rgba(201, 169, 110, 0); }
+    }
+
+    .hero-visual {
+      min-height: clamp(440px, 68vh, 680px);
+      border-radius: 26px;
+      background: linear-gradient(160deg, #f8f1e8 8%, #eadcc6 43%, #d8c4a6 100%);
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-strong);
+    }
+
+    .hero-visual::before,
+    .hero-visual::after { content: ""; position: absolute; }
+
+    .hero-visual::before {
+      width: 65%;
+      height: 62%;
+      background: linear-gradient(130deg, rgba(107, 118, 69, 0.18), rgba(78, 85, 48, 0.45));
+      border-radius: 20px;
+      right: 8%;
+      top: 10%;
+      transform: rotate(-8deg);
+    }
+
+    .hero-visual::after {
+      width: 48%;
+      height: 48%;
+      left: -12%;
+      bottom: -8%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 40%, rgba(255,255,255,0.75), rgba(212,184,150,0.3));
+    }
+
+    .hero-room-piece {
+      position: absolute;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.45);
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+
+    .piece-1 { width: 52%; height: 16%; bottom: 16%; left: 13%; }
+    .piece-2 { width: 28%; height: 28%; top: 20%; left: 8%; border-radius: 999px; }
+    .piece-3 { width: 26%; height: 36%; right: 9%; bottom: 6%; }
+
+    .hero-viewer-wrap {
+      position: absolute;
+      width: min(320px, 55%);
+      right: 4%;
+      bottom: 8%;
+      background: rgba(250, 247, 242, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+    }
+
+    model-viewer {
+      width: 100%;
+      height: 230px;
+      --poster-color: transparent;
+      background: linear-gradient(180deg, rgba(212, 184, 150, 0.2), rgba(255,255,255,0.2));
+    }
+
+    .scroll-indicator {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--olive-700);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      display: grid;
+      place-items: center;
+      gap: 8px;
+      opacity: 0.75;
+    }
+
+    .scroll-indicator svg { animation: bounce 1.7s infinite; }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(8px); }
+    }
+
+    .marquee {
+      background: var(--beige-200);
+      border-top: 1px solid rgba(107, 118, 69, 0.2);
+      border-bottom: 1px solid rgba(107, 118, 69, 0.2);
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .marquee-track {
+      display: inline-flex;
+      align-items: center;
+      gap: 22px;
+      padding: 14px 0;
+      color: var(--olive-700);
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      animation: marquee 28s linear infinite;
+    }
+
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    .section {
+      padding: var(--section-pad) 0;
+      position: relative;
+    }
+
+    .category-grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .category-card {
+      min-height: 340px;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      position: relative;
+      padding: 22px;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      border: 1px solid rgba(201, 169, 110, 0.3);
+      transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease;
+      box-shadow: var(--shadow-soft);
+      background: linear-gradient(180deg, rgba(107, 118, 69, 0.28), rgba(44,44,44,0.75)),
+        radial-gradient(circle at 20% 16%, #d9c2a4, #7c8860 68%);
+    }
+
+    .category-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(145deg, rgba(255,255,255,0.18), rgba(255,255,255,0));
+      pointer-events: none;
+    }
+
+    .category-card:hover,
+    .category-card:focus-visible {
+      transform: translateY(-5px) scale(1.01);
+      box-shadow: var(--shadow-strong);
+      border-color: rgba(201, 169, 110, 0.8);
+      outline: none;
+    }
+
+    .category-card h3 {
+      font-size: 1.7rem;
+      margin-bottom: 6px;
+    }
+
+    .category-card p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.86);
+    }
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    .filter-btn {
+      border: 1px solid rgba(107, 118, 69, 0.4);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--olive-700);
+      font-weight: 600;
+      padding: 9px 15px;
+      transition: all .22s ease;
+    }
+
+    .filter-btn.active,
+    .filter-btn:hover,
+    .filter-btn:focus-visible {
+      background: var(--olive-600);
+      color: #fff;
+      outline: none;
+    }
+
+    .product-grid {
+      display: grid;
+      gap: 22px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .product-card {
+      border-radius: var(--radius-md);
+      background: #fffdf9;
+      border: 1px solid rgba(107, 118, 69, 0.15);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      transition: transform .28s ease, box-shadow .28s ease, opacity .3s ease;
+      box-shadow: 0 8px 24px rgba(44, 44, 44, 0.05);
+    }
+
+    .product-card.hidden {
+      opacity: 0;
+      transform: scale(0.96);
+      pointer-events: none;
+      position: absolute;
+      width: 0;
+      height: 0;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .product-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-strong);
+    }
+
+    .product-art {
+      height: 220px;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(160deg, #f4ebde 8%, #e7d8c3 56%, #cab18f 100%);
+    }
+
+    .product-thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      position: absolute;
+      inset: 0;
+    }
+
+    .product-art model-viewer {
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 35% 20%, rgba(255,255,255,0.6), rgba(212,184,150,0.2));
+    }
+
+    .product-art model-viewer[data-model-error="true"] {
+      outline: 1px solid rgba(201, 169, 110, 0.6);
+      outline-offset: -1px;
+    }
+
+    .preview-shell {
+      display: grid;
+      place-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: linear-gradient(160deg, #f5ecdf 8%, #e7d8c3 56%, #cdb393 100%);
+    }
+
+    .preview-cube {
+      width: 82%;
+      height: 56%;
+      border: 1px dashed rgba(78, 85, 48, 0.55);
+      border-radius: 14px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.5), rgba(255,255,255,0.18));
+      position: relative;
+      overflow: hidden;
+    }
+
+    .preview-cube::before {
+      content: "";
+      position: absolute;
+      width: 56%;
+      height: 20%;
+      left: 22%;
+      bottom: 20%;
+      border-radius: 10px;
+      background: rgba(78, 85, 48, 0.65);
+    }
+
+    .preview-3d {
+      border: 1px solid rgba(78, 85, 48, 0.55);
+      background: rgba(255, 255, 255, 0.75);
+      color: #3f4727;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .preview-hint {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      z-index: 2;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(250, 247, 242, 0.84);
+      color: var(--olive-700);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid rgba(107, 118, 69, 0.18);
+      backdrop-filter: blur(8px);
+    }
+
+    .ar-launcher {
+      position: fixed;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+      left: -100px;
+      top: -100px;
+    }
+
+    .product-art::before,
+    .product-art::after {
+      content: none;
+    }
+
+    .wish-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 2;
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.82);
+      color: #7a7465;
+      display: grid;
+      place-items: center;
+      transition: all .2s ease;
+    }
+
+    .wish-btn.active {
+      color: #c24f5e;
+      background: #fff;
+      box-shadow: 0 8px 16px rgba(194, 79, 94, 0.25);
+    }
+
+    .product-badges {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      z-index: 2;
+      max-width: 70%;
+    }
+
+    .tag {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(107, 118, 69, 0.25);
+      color: var(--olive-700);
+      font-weight: 700;
+    }
+
+    .tag.sale { color: #8e3f2e; border-color: rgba(142, 63, 46, 0.4); }
+
+    .tag.eco svg {
+      width: 10px;
+      height: 10px;
+      margin-right: 4px;
+      vertical-align: -1px;
+      fill: var(--olive-600);
+    }
+
+    .product-content {
+      padding: 16px 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-grow: 1;
+    }
+
+    .product-name { font-size: 1.28rem; }
+
+    .material {
+      font-size: 0.84rem;
+      color: #6d6d6d;
+    }
+
+    .price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .price {
+      font-size: 1.2rem;
+      color: #232323;
+      font-weight: 700;
+    }
+
+    .old-price {
+      color: #8a8a8a;
+      text-decoration: line-through;
+      font-size: 0.92rem;
+    }
+
+    .emi {
+      color: var(--olive-600);
+      font-size: 0.78rem;
+      margin-top: -3px;
+    }
+
+    .rating {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #6b7645;
+      font-size: 0.83rem;
+    }
+
+    .stars {
+      display: inline-flex;
+      gap: 2px;
+    }
+
+    .stars svg {
+      width: 12px;
+      height: 12px;
+      fill: #c9a96e;
+    }
+
+    .stock {
+      font-size: 0.79rem;
+      color: #8a3b29;
+      font-weight: 700;
+    }
+
+    .product-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .add-btn,
+    .ar-btn {
+      border-radius: 999px;
+      border: none;
+      padding: 10px 10px;
+      font-size: 0.83rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: transform .2s ease;
+    }
+
+    .add-btn {
+      background: var(--olive-600);
+      color: #fff;
+    }
+
+    .ar-btn {
+      background: #f4eadc;
+      color: #4d5232;
+      border: 1px solid rgba(201, 169, 110, 0.55);
+    }
+
+    .add-btn:hover,
+    .ar-btn:hover,
+    .add-btn:focus-visible,
+    .ar-btn:focus-visible {
+      transform: translateY(-2px);
+      outline: none;
+    }
+
+    .load-wrap { text-align: center; margin-top: 36px; }
+
+    .ar-feature {
+      background: linear-gradient(165deg, #586036, #3d4428 72%);
+      color: #f6efe3;
+      padding: clamp(64px, 9vw, 100px) 0;
+      overflow: hidden;
+    }
+
+    .ar-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(24px, 4vw, 60px);
+      align-items: center;
+    }
+
+    .ar-feature p { color: rgba(246, 239, 227, 0.85); max-width: 52ch; line-height: 1.7; }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 20px 0 24px;
+    }
+
+    .pill {
+      border: 1px solid rgba(244, 235, 219, 0.35);
+      color: #fff;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 0.86rem;
+      background: rgba(255,255,255,0.07);
+    }
+
+    .btn-beige {
+      background: var(--beige-200);
+      color: #40472a;
+      border: none;
+    }
+
+    .phone-mock {
+      width: min(360px, 92%);
+      margin-inline: auto;
+      aspect-ratio: 9 / 18;
+      border-radius: 38px;
+      border: 10px solid #21271a;
+      background: #111;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 45px rgba(0,0,0,.35);
+    }
+
+    .phone-screen {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, #d9c6ad, #b79b79 58%, #8a764f);
+    }
+
+    .scan-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: rgba(255, 236, 207, 0.88);
+      box-shadow: 0 0 16px rgba(255, 232, 190, 0.8);
+      animation: scan 3s ease-in-out infinite;
+    }
+
+    @keyframes scan {
+      0%, 100% { top: 18%; }
+      50% { top: 78%; }
+    }
+
+    .sofa-outline {
+      position: absolute;
+      left: 13%;
+      right: 13%;
+      bottom: 24%;
+      height: 30%;
+      border: 2px dashed rgba(255, 242, 220, 0.95);
+      border-radius: 16px;
+      box-shadow: 0 0 24px rgba(255, 241, 205, 0.45);
+      animation: glow 2.3s ease-in-out infinite;
+    }
+
+    @keyframes glow {
+      0%, 100% { opacity: 0.8; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.03); }
+    }
+
+    .crosshair {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 244, 225, 0.86);
+      left: 50%;
+      top: 56%;
+      transform: translate(-50%, -50%);
+    }
+
+    .crosshair::before,
+    .crosshair::after {
+      content: "";
+      position: absolute;
+      background: rgba(255, 244, 225, 0.86);
+    }
+
+    .crosshair::before { width: 1px; height: 80px; left: 50%; top: 0; }
+    .crosshair::after { height: 1px; width: 80px; left: 0; top: 50%; }
+
+    .lookbook-grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: 1.1fr 1fr 1fr;
+      grid-auto-rows: 260px;
+    }
+
+    .lookbook-card {
+      border-radius: 18px;
+      position: relative;
+      overflow: hidden;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      color: #fff;
+      box-shadow: var(--shadow-soft);
+      background: linear-gradient(180deg, rgba(44,44,44,0.05), rgba(44,44,44,0.78)),
+      radial-gradient(circle at 30% 16%, #f0e4d2, #7f8b61 70%);
+    }
+
+    .lookbook-card:nth-child(1) { grid-row: span 2; }
+    .lookbook-card:nth-child(2) { background: linear-gradient(180deg, rgba(44,44,44,0.02), rgba(44,44,44,0.74)), radial-gradient(circle at 45% 30%, #f2d9b6, #8f7b59 72%); }
+    .lookbook-card:nth-child(3) { background: linear-gradient(180deg, rgba(44,44,44,0.02), rgba(44,44,44,0.74)), radial-gradient(circle at 40% 20%, #f8f3ea, #7d8961 72%); }
+
+    .mood { font-size: 0.74rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.82; }
+
+    .lookbook-card h3 {
+      font-size: clamp(1.4rem, 2.4vw, 2.1rem);
+      margin: 8px 0 14px;
+      max-width: 13ch;
+    }
+
+    .outline-light {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.55);
+      color: #fff;
+      padding: 9px 14px;
+      border-radius: 999px;
+      width: fit-content;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .testimonials-wrap {
+      background: var(--beige-100);
+      border-radius: 20px;
+      border: 1px solid rgba(107, 118, 69, 0.2);
+      padding: 26px;
+      overflow: hidden;
+    }
+
+    .testimonials-track {
+      display: flex;
+      transition: transform .7s ease;
+    }
+
+    .testimonial-card {
+      min-width: 100%;
+      padding: 6px 0;
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .quote {
+      background: #fffdf9;
+      border-left: 4px solid var(--olive-600);
+      border-radius: 14px;
+      padding: 18px 16px;
+      box-shadow: 0 8px 18px rgba(44,44,44,.05);
+    }
+
+    .quote-text {
+      margin: 0 0 14px;
+      line-height: 1.65;
+      color: #474747;
+      font-size: 0.95rem;
+    }
+
+    .quote-meta {
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+
+    .product-tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      background: #eef2e4;
+      color: #4d5631;
+      border: 1px solid rgba(107, 118, 69, 0.22);
+    }
+
+    .service-banner {
+      margin: var(--section-pad) 0;
+      text-align: center;
+      border-top: 1px solid rgba(107, 118, 69, 0.25);
+      border-bottom: 1px solid rgba(107, 118, 69, 0.25);
+      padding: 54px 16px;
+      background: linear-gradient(180deg, #f8f1e8, #f2e7d8);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .service-banner::before,
+    .service-banner::after {
+      content: "";
+      width: 180px;
+      height: 180px;
+      position: absolute;
+      border-radius: 50%;
+      border: 1px dashed rgba(107, 118, 69, 0.25);
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .service-banner::before { left: -80px; }
+    .service-banner::after { right: -80px; }
+
+    .service-banner h3 {
+      font-size: clamp(2rem, 4.1vw, 3.2rem);
+      margin-bottom: 10px;
+    }
+
+    .newsletter {
+      background: #f4eadb;
+      border-radius: 20px;
+      padding: clamp(26px, 4vw, 46px);
+      border: 1px solid rgba(107, 118, 69, 0.25);
+      display: grid;
+      gap: 18px;
+      justify-items: center;
+      text-align: center;
+    }
+
+    .newsletter form {
+      width: min(600px, 100%);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+    }
+
+    .newsletter input {
+      border: 1px solid rgba(107, 118, 69, 0.35);
+      border-radius: 999px;
+      background: #fff;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+    }
+
+    .newsletter input:focus-visible {
+      outline: 2px solid rgba(107, 118, 69, 0.4);
+      outline-offset: 2px;
+    }
+
+    footer {
+      background: #ede1d0;
+      margin-top: var(--section-pad);
+      border-top: 1px solid rgba(107, 118, 69, 0.27);
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr 1fr;
+      gap: 30px;
+      padding: 56px 0 38px;
+    }
+
+    .footer-col h4 {
+      font-size: 1.2rem;
+      margin-bottom: 13px;
+    }
+
+    .footer-col p,
+    .footer-col li,
+    .footer-col a {
+      margin: 0;
+      color: #4b4b4b;
+      font-size: 0.9rem;
+      line-height: 1.85;
+    }
+
+    .footer-col ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .socials {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .socials a {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid rgba(107, 118, 69, 0.3);
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,.5);
+    }
+
+    .whatsapp {
+      margin-top: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: #4e5530;
+      color: #fff;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(107, 118, 69, 0.22);
+      padding: 14px 0 20px;
+      font-size: 0.84rem;
+      color: #555;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .drawer,
+    .search-overlay,
+    .ar-modal,
+    .look-drawer {
+      position: fixed;
+      z-index: 80;
+      transition: transform .35s ease, opacity .28s ease;
+    }
+
+    .drawer {
+      top: 0;
+      right: 0;
+      width: min(420px, 100vw);
+      height: 100vh;
+      background: #fffdf8;
+      border-left: 1px solid rgba(107, 118, 69, 0.25);
+      box-shadow: -18px 0 46px rgba(44,44,44,.15);
+      transform: translateX(100%);
+      padding: 20px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 14px;
+    }
+
+    .drawer.open { transform: translateX(0); }
+
+    .drawer-list {
+      overflow: auto;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .cart-item {
+      border: 1px solid rgba(107, 118, 69, 0.2);
+      border-radius: 12px;
+      padding: 10px;
+      background: #fff;
+      display: grid;
+      gap: 8px;
+    }
+
+    .cart-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.88rem;
+      align-items: center;
+    }
+
+    .qty {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(107, 118, 69, 0.25);
+      border-radius: 999px;
+      padding: 3px;
+    }
+
+    .qty button {
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #eef2e5;
+      color: #394121;
+      font-weight: 700;
+    }
+
+    .search-overlay,
+    .ar-modal,
+    .look-drawer {
+      inset: 0;
+      background: rgba(33, 33, 33, 0.48);
+      opacity: 0;
+      pointer-events: none;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .search-overlay.open,
+    .ar-modal.open,
+    .look-drawer.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .search-panel {
+      width: min(700px, 96vw);
+      border-radius: 20px;
+      background: #fffdf9;
+      border: 1px solid rgba(107, 118, 69, 0.25);
+      padding: 18px;
+      transform: translateY(-22px);
+      transition: transform .3s ease;
+    }
+
+    .search-overlay.open .search-panel { transform: translateY(0); }
+
+    .search-panel input {
+      width: 100%;
+      border-radius: 999px;
+      border: 1px solid rgba(107,118,69,.35);
+      padding: 12px 14px;
+      font-size: 1rem;
+    }
+
+    .modal-card {
+      width: min(880px, 96vw);
+      border-radius: 18px;
+      background: #fffbf7;
+      border: 1px solid rgba(107, 118, 69, 0.25);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: hidden;
+      box-shadow: 0 20px 55px rgba(0,0,0,.2);
+      transform: translateY(16px);
+      transition: transform .35s ease;
+    }
+
+    .ar-modal.open .modal-card { transform: translateY(0); }
+
+    .modal-left,
+    .modal-right { padding: 22px; }
+
+    .scan-anim {
+      margin-top: 14px;
+      height: 190px;
+      border-radius: 14px;
+      border: 1px dashed rgba(107,118,69,.4);
+      background: linear-gradient(180deg, #f4ead8, #e8d8c1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .scan-anim::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: rgba(78, 85, 48, 0.8);
+      animation: scan 2.2s ease-in-out infinite;
+    }
+
+    .qr {
+      width: 170px;
+      aspect-ratio: 1;
+      border-radius: 12px;
+      border: 1px solid rgba(78, 85, 48, 0.4);
+      background:
+        linear-gradient(90deg, #2f2f2f 10px, transparent 10px) 0 0/20px 20px,
+        linear-gradient(#2f2f2f 10px, transparent 10px) 0 0/20px 20px,
+        #fff;
+      margin: 10px auto;
+    }
+
+    .steps {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 8px;
+      color: #4f4f4f;
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    .demo-room {
+      margin-top: 10px;
+      border-radius: 12px;
+      height: 180px;
+      background: linear-gradient(180deg, #efe2cc, #c6ac87 64%, #8f7a58);
+      position: relative;
+      overflow: hidden;
+      display: none;
+    }
+
+    .demo-room.show { display: block; }
+
+    .demo-furniture {
+      position: absolute;
+      width: 58%;
+      left: 21%;
+      bottom: 16%;
+      height: 26%;
+      background: rgba(78, 85, 48, 0.88);
+      border-radius: 12px;
+      transform-origin: center bottom;
+      animation: popIn .65s ease;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.6) translateY(22px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .close-btn {
+      border: none;
+      background: rgba(33,33,33,.08);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      font-size: 1.05rem;
+      margin-left: auto;
+      display: block;
+    }
+
+    .look-drawer-card {
+      width: min(560px, 95vw);
+      background: #fffdf9;
+      border-radius: 16px;
+      border: 1px solid rgba(107,118,69,.25);
+      box-shadow: var(--shadow-strong);
+      overflow: hidden;
+    }
+
+    .look-drawer-head {
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(107,118,69,.2);
+      background: #f7f0e5;
+    }
+
+    .look-items {
+      padding: 12px 16px 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .look-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      border: 1px solid rgba(107,118,69,.22);
+      border-radius: 10px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    .toast-wrap {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      display: grid;
+      gap: 8px;
+      z-index: 90;
+    }
+
+    .toast {
+      background: var(--olive-600);
+      color: #fff;
+      border-radius: 10px;
+      padding: 10px 12px;
+      box-shadow: var(--shadow-soft);
+      min-width: 210px;
+      animation: toastIn .26s ease;
+      font-size: 0.86rem;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity .65s ease, transform .65s ease;
+    }
+
+    .reveal.in-view {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .quote-italic {
+      font-family: "Playfair Display", serif;
+      font-style: italic;
+      font-size: 1.12rem;
+      color: #565644;
+      margin: 14px 0 0;
+    }
+
+    @media (max-width: 1140px) {
+      .nav-links { display: none; }
+      .hero-grid,
+      .ar-grid,
+      .product-grid,
+      .footer-grid,
+      .category-grid,
+      .lookbook-grid,
+      .testimonial-card { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .lookbook-card:nth-child(1) { grid-row: span 1; }
+      .modal-card { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      .hero { padding-top: 110px; }
+      .hero-grid,
+      .ar-grid,
+      .product-grid,
+      .category-grid,
+      .lookbook-grid,
+      .footer-grid,
+      .testimonial-card,
+      .newsletter form { grid-template-columns: 1fr; }
+      .hero-visual { min-height: 390px; }
+      .hero-badge { right: 50%; transform: translateX(50%); top: 92px; }
+      .scroll-indicator { bottom: 8px; }
+      .product-actions { grid-template-columns: 1fr; }
+      .nav { border-radius: 14px; }
+      .section-number { left: 6px; }
+      .service-banner::before,
+      .service-banner::after { display: none; }
+      .footer-bottom { justify-content: center; text-align: center; }
+      .hero-viewer-wrap { position: static; width: calc(100% - 18px); margin: 14px auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cursor" aria-hidden="true"></div>
+
+  <header class="nav" id="navbar">
+    <div class="nav-inner">
+      <a href="#home" class="brand" aria-label="Lumea home">
+        <span>Lumea</span>
+        <svg class="leaf-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.4 4.6C14.9 4.1 10 6.7 7.6 11.2c-.8 1.4-1.2 2.9-1.3 4.4L3 19l1.4 1.4 3.4-3.4c1.5-.1 3-.5 4.4-1.3 4.5-2.4 7.1-7.3 6.6-12.8-.1-.8-.8-1.4-1.6-1.3-.3 0-.6.1-.8.2z"></path></svg>
+      </a>
+
+      <nav aria-label="Primary navigation">
+        <ul class="nav-links">
+          <li><a href="#home">Home</a></li>
+          <li><a href="#collections">Collections</a></li>
+          <li><a href="#rooms">Rooms</a></li>
+          <li><a href="#ar-view">AR View</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-icons">
+        <button class="icon-btn" id="searchOpen" aria-label="Search products">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.2-3.2"></path></svg>
+        </button>
+        <button class="icon-btn" aria-label="Open wishlist">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 20s-7-4.4-9-8.2C1.5 8.9 3.2 5 7 5c2.1 0 3.3 1.1 5 3 1.7-1.9 2.9-3 5-3 3.8 0 5.5 3.9 4 6.8-2 3.8-9 8.2-9 8.2z"></path></svg>
+          <span class="badge" id="wishCount">0</span>
+        </button>
+        <button class="icon-btn" id="cartOpen" aria-label="Open cart">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="20" r="1.2"></circle><circle cx="18" cy="20" r="1.2"></circle><path d="M3 4h2l2.4 10.2a2 2 0 0 0 2 1.5h8.9a2 2 0 0 0 2-1.5L22 7H7.2"></path></svg>
+          <span class="badge" id="cartCount">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="container hero-grid">
+        <div class="reveal">
+          <p class="eyebrow">Where Every Room Tells a Story</p>
+          <h1>Furnish Your World,<br>One Story at a Time</h1>
+          <p>Handcrafted furniture and curated decor for soulful living spaces shaped by texture, light, and everyday rituals.</p>
+          <div class="hero-actions">
+            <a href="#collections" class="btn btn-primary">Explore Collection</a>
+            <button class="btn btn-outline" data-open-ar="sofa/sofa_01.glb">View in Your Room &rarr;</button>
+          </div>
+          <p class="quote-italic">Quiet luxury for homes that feel lived in, loved, and lasting.</p>
+        </div>
+        <div class="hero-visual reveal" aria-hidden="true">
+          <span class="hero-room-piece piece-1"></span>
+          <span class="hero-room-piece piece-2"></span>
+          <span class="hero-room-piece piece-3"></span>
+          <div class="hero-viewer-wrap">
+            <model-viewer src="Model.glb" alt="Lumea sofa 3D preview" camera-controls auto-rotate ar ar-modes="scene-viewer webxr" ar-scale="fixed" shadow-intensity="1"></model-viewer>
+          </div>
+        </div>
+      </div>
+      <div class="hero-badge">New: AR Room Preview</div>
+      <div class="scroll-indicator" aria-hidden="true">Scroll
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m6 9 6 6 6-6"></path></svg>
+      </div>
+    </section>
+
+    <section class="marquee" aria-label="Trust indicators">
+      <div class="marquee-track">
+        <span>Free Delivery over ₹15,000</span>
+        <svg class="leaf-icon" viewBox="0 0 24 24"><path d="M20.4 4.6C14.9 4.1 10 6.7 7.6 11.2c-.8 1.4-1.2 2.9-1.3 4.4L3 19l1.4 1.4 3.4-3.4c1.5-.1 3-.5 4.4-1.3 4.5-2.4 7.1-7.3 6.6-12.8-.1-.8-.8-1.4-1.6-1.3-.3 0-.6.1-.8.2z"></path></svg>
+        <span>10-Year Craftsmanship Warranty</span>
+        <svg class="leaf-icon" viewBox="0 0 24 24"><path d="M20.4 4.6C14.9 4.1 10 6.7 7.6 11.2c-.8 1.4-1.2 2.9-1.3 4.4L3 19l1.4 1.4 3.4-3.4c1.5-.1 3-.5 4.4-1.3 4.5-2.4 7.1-7.3 6.6-12.8-.1-.8-.8-1.4-1.6-1.3-.3 0-.6.1-.8.2z"></path></svg>
+        <span>Easy EMI Available</span>
+        <svg class="leaf-icon" viewBox="0 0 24 24"><path d="M20.4 4.6C14.9 4.1 10 6.7 7.6 11.2c-.8 1.4-1.2 2.9-1.3 4.4L3 19l1.4 1.4 3.4-3.4c1.5-.1 3-.5 4.4-1.3 4.5-2.4 7.1-7.3 6.6-12.8-.1-.8-.8-1.4-1.6-1.3-.3 0-.6.1-.8.2z"></path></svg>
+        <span>Sustainable Materials</span>
+        <svg class="leaf-icon" viewBox="0 0 24 24"><path d="M20.4 4.6C14.9 4.1 10 6.7 7.6 11.2c-.8 1.4-1.2 2.9-1.3 4.4L3 19l1.4 1.4 3.4-3.4c1.5-.1 3-.5 4.4-1.3 4.5-2.4 7.1-7.3 6.6-12.8-.1-.8-.8-1.4-1.6-1.3-.3 0-.6.1-.8.2z"></path></svg>
+        <span>AR View Enabled</span>
+        <span>Free Delivery over ₹15,000</span>
+        <svg class="leaf-icon" viewBox="0 0 24 24"><path d="M20.4 4.6C14.9 4.1 10 6.7 7.6 11.2c-.8 1.4-1.2 2.9-1.3 4.4L3 19l1.4 1.4 3.4-3.4c1.5-.1 3-.5 4.4-1.3 4.5-2.4 7.1-7.3 6.6-12.8-.1-.8-.8-1.4-1.6-1.3-.3 0-.6.1-.8.2z"></path></svg>
+        <span>10-Year Craftsmanship Warranty</span>
+        <svg class="leaf-icon" viewBox="0 0 24 24"><path d="M20.4 4.6C14.9 4.1 10 6.7 7.6 11.2c-.8 1.4-1.2 2.9-1.3 4.4L3 19l1.4 1.4 3.4-3.4c1.5-.1 3-.5 4.4-1.3 4.5-2.4 7.1-7.3 6.6-12.8-.1-.8-.8-1.4-1.6-1.3-.3 0-.6.1-.8.2z"></path></svg>
+        <span>Easy EMI Available</span>
+      </div>
+    </section>
+
+    <section class="section" id="rooms">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="section-number" aria-hidden="true">01</span>
+          <p class="eyebrow">Spaces</p>
+          <h2>Design Your Space</h2>
+          <div class="gold-divider"></div>
+        </div>
+        <div class="category-grid">
+          <article class="category-card reveal" tabindex="0"><h3>Living Room</h3><p>42 pieces</p></article>
+          <article class="category-card reveal" tabindex="0"><h3>Bedroom</h3><p>31 pieces</p></article>
+          <article class="category-card reveal" tabindex="0"><h3>Dining Room</h3><p>27 pieces</p></article>
+          <article class="category-card reveal" tabindex="0"><h3>Home Office</h3><p>19 pieces</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="collections">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="section-number" aria-hidden="true">02</span>
+          <p class="eyebrow">Curated Design</p>
+          <h2>Our Collections</h2>
+          <div class="gold-divider"></div>
+        </div>
+
+        <div class="filter-bar reveal" role="tablist" aria-label="Product filters">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="sofas">Sofas</button>
+          <button class="filter-btn" data-filter="tables">Tables</button>
+          <button class="filter-btn" data-filter="chairs">Chairs</button>
+          <button class="filter-btn" data-filter="lighting">Lighting</button>
+          <button class="filter-btn" data-filter="decor">Decor</button>
+          <button class="filter-btn" data-filter="beds">Beds</button>
+        </div>
+
+        <div class="product-grid" id="productGrid"></div>
+
+        <div class="load-wrap reveal">
+          <button class="btn btn-outline" id="loadMore">Load More</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="ar-feature" id="ar-view">
+      <div class="container ar-grid">
+        <div class="reveal">
+          <p class="eyebrow" style="color:#f3dfbe;">AR Experience</p>
+          <h2>See It In Your Space Before You Buy</h2>
+          <p>Point your phone at any room and place our furniture virtually. Powered by WebAR technology, no app download required.</p>
+          <div class="pill-row">
+            <span class="pill">Real-scale 3D models</span>
+            <span class="pill">Works on any smartphone</span>
+            <span class="pill">Share your room mockup</span>
+          </div>
+          <button class="btn btn-beige" data-open-ar="sofa/sofa_01.glb">Launch AR Experience</button>
+        </div>
+        <div class="phone-mock reveal" aria-hidden="true">
+          <div class="phone-screen">
+            <div class="scan-line"></div>
+            <div class="sofa-outline"></div>
+            <div class="crosshair"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="about">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="section-number" aria-hidden="true">03</span>
+          <p class="eyebrow">Lookbook</p>
+          <h2>Room Stories</h2>
+          <div class="gold-divider"></div>
+        </div>
+        <div class="lookbook-grid">
+          <article class="lookbook-card reveal">
+            <span class="mood">Japandi meets Olive</span>
+            <h3>The Serene Study</h3>
+            <button class="outline-light" data-look="study">Shop This Look</button>
+          </article>
+          <article class="lookbook-card reveal">
+            <span class="mood">Warm Beige Tones</span>
+            <h3>The Golden Hour Living Room</h3>
+            <button class="outline-light" data-look="living">Shop This Look</button>
+          </article>
+          <article class="lookbook-card reveal">
+            <span class="mood">Linen and Natural Wood</span>
+            <h3>The Minimal Bedroom</h3>
+            <button class="outline-light" data-look="bedroom">Shop This Look</button>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="section-number" aria-hidden="true">04</span>
+          <p class="eyebrow">Testimonials</p>
+          <h2>Loved by 12,000+ Homeowners</h2>
+          <div class="gold-divider"></div>
+        </div>
+        <div class="testimonials-wrap reveal">
+          <div class="testimonials-track" id="testimonialTrack">
+            <div class="testimonial-card">
+              <article class="quote">
+                <p class="quote-text">"The Solene sofa changed the mood of our apartment overnight. The fabric feels rich and the AR preview matched scale perfectly."</p>
+                <div class="quote-meta">Priya R., Bangalore</div>
+                <div class="rating"><span class="stars">★★★★★</span> 4.9</div>
+                <span class="product-tag">Purchased: Solene Linen Sofa</span>
+              </article>
+              <article class="quote">
+                <p class="quote-text">"Lumea feels thoughtful in every detail, from the oak table edges to delivery and setup. The quality is worth every rupee."</p>
+                <div class="quote-meta">Arjun K., Mumbai</div>
+                <div class="rating"><span class="stars">★★★★★</span> 4.8</div>
+                <span class="product-tag">Purchased: Maren Dining Table</span>
+              </article>
+              <article class="quote">
+                <p class="quote-text">"Used AR before ordering and it fit exactly where I planned. The finish and craftsmanship are beautiful in person."</p>
+                <div class="quote-meta">Neha S., Pune</div>
+                <div class="rating"><span class="stars">★★★★★</span> 4.9</div>
+                <span class="product-tag">Purchased: Dune Platform Bed</span>
+              </article>
+            </div>
+            <div class="testimonial-card">
+              <article class="quote">
+                <p class="quote-text">"Their team helped us pair textures and tones that made our home feel calmer. We now keep coming back for decor drops."</p>
+                <div class="quote-meta">Rhea M., Hyderabad</div>
+                <div class="rating"><span class="stars">★★★★★</span> 4.7</div>
+                <span class="product-tag">Purchased: Noor Ceramic Vase</span>
+              </article>
+              <article class="quote">
+                <p class="quote-text">"I was skeptical about buying furniture online, but the AR view removed all guesswork. Setup was smooth, product is solid."</p>
+                <div class="quote-meta">Karthik N., Chennai</div>
+                <div class="rating"><span class="stars">★★★★★</span> 4.8</div>
+                <span class="product-tag">Purchased: Atlas Shelf</span>
+              </article>
+              <article class="quote">
+                <p class="quote-text">"The lounge chair looks like art in our living room. Premium finish, fast shipping and surprisingly easy EMI process."</p>
+                <div class="quote-meta">Sana F., Delhi</div>
+                <div class="rating"><span class="stars">★★★★★</span> 4.8</div>
+                <span class="product-tag">Purchased: Cielo Rattan Chair</span>
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="service-banner reveal">
+      <div class="container">
+        <h3>Need help designing your space?</h3>
+        <p>Book a free 30-min consultation with our interior designers.</p>
+        <button class="btn btn-primary">Book Consultation</button>
+      </div>
+    </section>
+
+    <section class="section" id="contact" style="padding-top:0;">
+      <div class="container">
+        <div class="newsletter reveal">
+          <p class="eyebrow">Join the Lumea Circle</p>
+          <h2>Get 10% off your first order and early access to new arrivals</h2>
+          <form id="newsletterForm">
+            <input aria-label="Email address" type="email" id="newsEmail" placeholder="Enter your email" required>
+            <button class="btn btn-primary" type="submit">Subscribe</button>
+          </form>
+          <small>No spam, ever. Unsubscribe anytime.</small>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-grid">
+      <div class="footer-col">
+        <div class="brand" style="font-size:2.1rem; margin-bottom:8px;">
+          <span>Lumea</span>
+          <svg class="leaf-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.4 4.6C14.9 4.1 10 6.7 7.6 11.2c-.8 1.4-1.2 2.9-1.3 4.4L3 19l1.4 1.4 3.4-3.4c1.5-.1 3-.5 4.4-1.3 4.5-2.4 7.1-7.3 6.6-12.8-.1-.8-.8-1.4-1.6-1.3-.3 0-.6.1-.8.2z"></path></svg>
+        </div>
+        <p>Premium interior design, furniture and decor shaped by warm materials and quiet craft.</p>
+        <div class="socials">
+          <a href="#" aria-label="Instagram"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="3.6"></circle><circle cx="17.5" cy="6.5" r="1"></circle></svg></a>
+          <a href="#" aria-label="Pinterest"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"></circle><path d="M9 17.2c.8-1.9 1.5-4.8 1.7-5.9-.3-.6-.5-1.4-.5-2 0-1.9 1.1-3.3 2.5-3.3 1.2 0 1.8.9 1.8 2 0 1.2-.8 3-1.2 4.6-.4 1.3.7 2.4 2 2.4 2.5 0 4.2-2.7 4.2-6 0-2.5-1.7-4.4-5-4.4-3.6 0-5.8 2.7-5.8 5.7 0 1 .3 2 .8 2.6"></path></svg></a>
+          <a href="#" aria-label="YouTube"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2" y="6" width="20" height="12" rx="3"></rect><path d="m10 9 5 3-5 3z"></path></svg></a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#home">Home</a></li>
+          <li><a href="#collections">Collections</a></li>
+          <li><a href="#ar-view">AR View</a></li>
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Press</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Customer Care</h4>
+        <ul>
+          <li><a href="#">Track Order</a></li>
+          <li><a href="#">Returns and Exchange</a></li>
+          <li><a href="#">Care Guide</a></li>
+          <li><a href="#">Warranty</a></li>
+          <li><a href="#">FAQ</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <p>Bandra West, Mumbai, India</p>
+        <p><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="066e636a6a69466a736b6367286f68">[email&#160;protected]</a></p>
+        <p>+91 98765 12345</p>
+        <a class="whatsapp" href="#" aria-label="WhatsApp support">WhatsApp us</a>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <span>© 2025 Lumea. All rights reserved.</span>
+      <span><a href="#">Privacy Policy</a> | <a href="#">Terms</a></span>
+    </div>
+  </footer>
+
+  <aside class="drawer" id="cartDrawer" aria-label="Cart drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+      <h3 style="font-size:1.9rem;">Your Cart</h3>
+      <button class="close-btn" id="cartClose" aria-label="Close cart">&times;</button>
+    </div>
+    <div class="drawer-list" id="cartList"></div>
+    <div style="border-top:1px solid rgba(107,118,69,.25); padding-top:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-weight:700;margin-bottom:10px;">
+        <span>Subtotal</span>
+        <span id="subtotal">₹0</span>
+      </div>
+      <button class="btn btn-primary" id="checkoutBtn" style="width:100%;justify-content:center;">Proceed to Checkout</button>
+    </div>
+  </aside>
+
+  <div class="search-overlay" id="searchOverlay" aria-hidden="true">
+    <div class="search-panel">
+      <button class="close-btn" id="searchClose" aria-label="Close search">&times;</button>
+      <h3 style="font-size:2rem; margin:4px 0 10px;">Search Collection</h3>
+      <input id="searchInput" type="text" placeholder="Search by product name..." aria-label="Search product by name">
+      <p style="font-size:0.85rem; color:#666; margin-top:8px;">Results update in real time.</p>
+    </div>
+  </div>
+
+  <div class="look-drawer" id="lookDrawer" aria-hidden="true">
+    <div class="look-drawer-card">
+      <div class="look-drawer-head">
+        <h4 id="lookTitle" style="font-size:1.5rem; margin:0;">Shop This Look</h4>
+        <button class="close-btn" id="lookClose" aria-label="Close look items">&times;</button>
+      </div>
+      <div class="look-items" id="lookItems"></div>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+    const products = [
+      { id: 2, name: "Maren Curve Sofa", category: "sofas", material: "Engineered Oak · Soft Weave", price: 92500, oldPrice: 104000, rating: 4.8, reviews: 189, badge: ["New Arrival"], stock: "", art: "art-b", model: "sofa/sofa_01.glb", thumbnail: "sofa/Maren curve sofa.png" },
+      { id: 3, name: "Cielo Lounge Sofa", category: "sofas", material: "Rattan Detail · Teak Frame", price: 124500, oldPrice: 138900, rating: 4.7, reviews: 128, badge: ["Sale"], stock: "", art: "art-c", model: "sofa/sofa_02.glb", thumbnail: "sofa/Cielo Lounge Sofa.png" },
+      { id: 4, name: "Ember Studio Sofa", category: "sofas", material: "Modular Foam · Linen Blend", price: 112500, oldPrice: 0, rating: 4.6, reviews: 86, badge: ["New Arrival"], stock: "", art: "art-d", model: "sofa/sofa_03.glb", thumbnail: "sofa/Ember Studio Sofa.png" },
+      { id: 6, name: "Atlas Modular Sofa", category: "sofas", material: "Modular Blocks · Stainproof Fabric", price: 154000, oldPrice: 0, rating: 4.8, reviews: 97, badge: ["Eco-Friendly"], stock: "", art: "art-f", model: "sofa/low_poly__sofa.glb", thumbnail: "sofa/Atlas Modular Sofa.png" },
+      { id: 7, name: "Dune Platform Sofa", category: "sofas", material: "Solid Oak Base · Plush Cushion", price: 132000, oldPrice: 149000, rating: 4.9, reviews: 156, badge: ["Bestseller"], stock: "Only 5 left", art: "art-g", model: "sofa/sofa.glb", thumbnail: "sofa/Dune Platform Sofa.png" },
+      { id: 8, name: "Halcyon Corner Sofa", category: "sofas", material: "Corner Modular · Textured Linen", price: 136500, oldPrice: 0, rating: 4.7, reviews: 73, badge: ["New Arrival", "Eco"], stock: "", art: "art-h", model: "sofa/sofa (1).glb", thumbnail: "sofa/Halcyon Corner Sofa.png" },
+      { id: 9, name: "Antique Study Desk", category: "tables", material: "Solid Oak · Vintage Finish", price: 64500, oldPrice: 76000, rating: 4.6, reviews: 92, badge: ["Vintage"], stock: "Only 4 left", art: "art-i", model: "sofa/sofa_01.glb" },
+      { id: 10, name: "Classic Dining Table", category: "tables", material: "Teak Wood · Natural Polish", price: 145000, oldPrice: 168000, rating: 4.8, reviews: 156, badge: ["Best Seller"], stock: "", art: "art-j", model: "sofa/sofa_01.glb" },
+      { id: 11, name: "Decorative Console Table", category: "tables", material: "Walnut · Gold Accents", price: 52000, oldPrice: 62500, rating: 4.7, reviews: 84, badge: ["Sale"], stock: "", art: "art-k", model: "sofa/sofa_01.glb" },
+      { id: 12, name: "Folding Work Table", category: "tables", material: "Steel · Matte Black", price: 28500, oldPrice: 0, rating: 4.5, reviews: 68, badge: ["Modern"], stock: "", art: "art-l", model: "sofa/sofa_01.glb" },
+      { id: 13, name: "Vintage Round Table", category: "tables", material: "Metal · Glass Top", price: 48900, oldPrice: 58000, rating: 4.6, reviews: 73, badge: ["Eco"], stock: "", art: "art-m", model: "sofa/sofa_01.glb" },
+      { id: 14, name: "Industrial Metal Table", category: "tables", material: "Iron · Powder Coated", price: 35500, oldPrice: 42000, rating: 4.4, reviews: 51, badge: ["New Arrival"], stock: "Only 7 left", art: "art-n", model: "sofa/sofa_01.glb" },
+      { id: 15, name: "Rustic Wood Table", category: "tables", material: "Solid Wood · Hand Carved", price: 54000, oldPrice: 64500, rating: 4.7, reviews: 98, badge: ["Handcrafted"], stock: "", art: "art-o", model: "sofa/sofa_01.glb" },
+      { id: 16, name: "Compact Side Table", category: "tables", material: "Pine · Walnut Stain", price: 18900, oldPrice: 24500, rating: 4.5, reviews: 112, badge: ["Sale"], stock: "", art: "art-p", model: "sofa/sofa_01.glb" },
+      { id: 17, name: "Outdoor Picnic Table", category: "tables", material: "Weather Treated Wood", price: 42500, oldPrice: 51000, rating: 4.6, reviews: 87, badge: ["Outdoor"], stock: "", art: "art-q", model: "sofa/sofa_01.glb" },
+      { id: 18, name: "Retro Office Desk", category: "tables", material: "Oak · Leather Details", price: 78000, oldPrice: 92500, rating: 4.8, reviews: 135, badge: ["Best Seller"], stock: "", art: "art-r", model: "sofa/sofa_01.glb" },
+      { id: 19, name: "Signature Lounge Chair", category: "chairs", material: "Leather · Solid Teak", price: 45000, oldPrice: 52500, rating: 4.7, reviews: 124, badge: ["Premium"], stock: "", art: "art-s", model: "sofa/some_furniture.glb" },
+      { id: 20, name: "Modern Office Chair", category: "chairs", material: "Mesh · Adjustable Height", price: 28500, oldPrice: 0, rating: 4.6, reviews: 156, badge: ["Ergonomic"], stock: "Only 12 left", art: "art-t", model: "sofa/some_furniture.glb" },
+      { id: 21, name: "Gothic Statement Chair", category: "chairs", material: "Velvet · Wooden Frame", price: 52000, oldPrice: 61500, rating: 4.5, reviews: 87, badge: ["Limited"], stock: "", art: "art-u", model: "sofa/some_furniture.glb" },
+      { id: 22, name: "Contemporary Armchair", category: "chairs", material: "Fabric · Metal Base", price: 38500, oldPrice: 45000, rating: 4.7, reviews: 98, badge: ["New Design"], stock: "", art: "art-v", model: "sofa/some_furniture.glb" },
+      { id: 23, name: "Classic Wooden Chair", category: "chairs", material: "Solid Wood · Hand Finished", price: 22500, oldPrice: 28000, rating: 4.4, reviews: 72, badge: ["Handcrafted"], stock: "", art: "art-w", model: "sofa/some_furniture.glb" },
+      { id: 24, name: "Mid Century Modern Chair", category: "chairs", material: "Upholstered · Tapered Legs", price: 48900, oldPrice: 58000, rating: 4.8, reviews: 142, badge: ["Vintage Inspired"], stock: "", art: "art-x", model: "sofa/some_furniture.glb" },
+      { id: 25, name: "Retro Soviet Chair", category: "chairs", material: "Wood · Iconic Design", price: 18500, oldPrice: 24000, rating: 4.3, reviews: 56, badge: ["Vintage"], stock: "", art: "art-y", model: "sofa/some_furniture.glb" },
+      { id: 26, name: "Vintage Parlor Chair", category: "chairs", material: "Fabric · Carved Wood", price: 42000, oldPrice: 49500, rating: 4.6, reviews: 91, badge: ["Antique"], stock: "", art: "art-z", model: "sofa/some_furniture.glb" },
+      { id: 27, name: "Futuristic Design Chair", category: "chairs", material: "Matte Finish · Minimalist", price: 35500, oldPrice: 42000, rating: 4.5, reviews: 68, badge: ["Modern"], stock: "", art: "art-aa", model: "sofa/some_furniture.glb" },
+      { id: 28, name: "Dublin Accent Chair", category: "chairs", material: "Upholstered · Wooden Arms", price: 32500, oldPrice: 38500, rating: 4.7, reviews: 103, badge: ["New Arrival"], stock: "", art: "art-ab", model: "sofa/some_furniture.glb" },
+      { id: 29, name: "Sofa Chair Hybrid", category: "chairs", material: "Plush Fabric · Deep Seat", price: 55000, oldPrice: 65000, rating: 4.8, reviews: 118, badge: ["Bestseller"], stock: "Only 3 left", art: "art-ac", model: "sofa/some_furniture.glb" },
+      { id: 30, name: "Round Accent Chair", category: "chairs", material: "Velvet · Swivel Base", price: 31000, oldPrice: 37500, rating: 4.6, reviews: 85, badge: ["Sale"], stock: "", art: "art-ad", model: "sofa/some_furniture.glb" },
+      { id: 31, name: "Upholstered Dining Chair", category: "chairs", material: "Linen · Oak Frame", price: 26500, oldPrice: 32000, rating: 4.5, reviews: 79, badge: ["Sale"], stock: "", art: "art-ae", model: "sofa/some_furniture.glb" },
+      { id: 32, name: "Heritage Classic Chair", category: "chairs", material: "Solid Wood · Traditional", price: 28000, oldPrice: 33500, rating: 4.4, reviews: 64, badge: ["Classic"], stock: "", art: "art-af", model: "sofa/some_furniture.glb" },
+      { id: 33, name: "Simple Modern Chair", category: "chairs", material: "Scandinavian Design", price: 24500, oldPrice: 30000, rating: 4.6, reviews: 94, badge: ["Minimalist"], stock: "", art: "art-ag", model: "sofa/some_furniture.glb" }
+    ];
+
+    const looks = {
+      study: [
+        { name: "Atlas Modular Shelf", price: "₹54,000" },
+        { name: "Cielo Rattan Chair", price: "₹24,500" },
+        { name: "Ember Floor Lamp", price: "₹12,500" }
+      ],
+      living: [
+        { name: "Solene Linen Sofa", price: "₹1,85,000" },
+        { name: "Halcyon Coffee Table", price: "₹36,500" },
+        { name: "Noor Ceramic Vase", price: "₹8,900" }
+      ],
+      bedroom: [
+        { name: "Dune Platform Bed", price: "₹1,32,000" },
+        { name: "Noor Ceramic Vase", price: "₹8,900" },
+        { name: "Ember Floor Lamp", price: "₹12,500" }
+      ]
+    };
+
+    const productGrid = document.getElementById("productGrid");
+    const cartDrawer = document.getElementById("cartDrawer");
+    const cartList = document.getElementById("cartList");
+    const subtotalEl = document.getElementById("subtotal");
+    const cartCount = document.getElementById("cartCount");
+    const wishCount = document.getElementById("wishCount");
+    const toastWrap = document.getElementById("toastWrap");
+    const lookDrawer = document.getElementById("lookDrawer");
+    const lookItems = document.getElementById("lookItems");
+    const lookTitle = document.getElementById("lookTitle");
+    const navbar = document.getElementById("navbar");
+
+    let cart = JSON.parse(sessionStorage.getItem("lumea-cart") || "[]");
+    let wishlist = JSON.parse(localStorage.getItem("lumea-wishlist") || "[]");
+    let testimonialIndex = 0;
+    let currentFilter = "sofas";
+    let currentSearch = "";
+    const SAFE_MODEL = "sofa/sofa_01.glb";
+    const loadedPreviews = new Set();
+    const warmModelPromises = new Map();
+
+    function formatINR(value) {
+      return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(value);
+    }
+
+    function starTemplate() {
+      return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.5 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3 6.2 20.4l1.1-6.5L2.6 9.3l6.5-.9z"></path></svg>`;
+    }
+
+    function badgeTemplate(item) {
+      return item.badge.map((b) => {
+        if (b.toLowerCase().includes("eco")) {
+          return `<span class="tag eco"><svg viewBox="0 0 24 24"><path d="M20.4 4.6C14.9 4.1 10 6.7 7.6 11.2c-.8 1.4-1.2 2.9-1.3 4.4L3 19l1.4 1.4 3.4-3.4c1.5-.1 3-.5 4.4-1.3 4.5-2.4 7.1-7.3 6.6-12.8-.1-.8-.8-1.4-1.6-1.3-.3 0-.6.1-.8.2z"></path></svg>${b}</span>`;
+        }
+        const saleClass = b.toLowerCase().includes("sale") ? "sale" : "";
+        return `<span class="tag ${saleClass}">${b}</span>`;
+      }).join("");
+    }
+
+    function buildProductThumbnail(item) {
+      const palettes = {
+        sofas: { base: "#6b7645", accent: "#d4b896", shadow: "#2c2c2c", glow: "#fff7ed" },
+        chairs: { base: "#4e5530", accent: "#c9a96e", shadow: "#2c2c2c", glow: "#f7f0e5" },
+        tables: { base: "#8a7656", accent: "#d4b896", shadow: "#4e5530", glow: "#fff8ef" }
+      };
+      const palette = palettes[item.category] || palettes.sofas;
+      const title = item.name.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+      let body = "";
+      if (item.category === "chairs") {
+        body = `
+          <g transform="translate(0 4)">
+            <ellipse cx="320" cy="312" rx="170" ry="28" fill="rgba(44,44,44,0.14)"/>
+            <rect x="248" y="118" width="124" height="162" rx="34" fill="${palette.base}"/>
+            <rect x="218" y="186" width="184" height="34" rx="17" fill="${palette.shadow}"/>
+            <rect x="236" y="226" width="148" height="72" rx="22" fill="${palette.accent}"/>
+            <rect x="258" y="276" width="20" height="74" rx="10" fill="${palette.shadow}"/>
+            <rect x="362" y="276" width="20" height="74" rx="10" fill="${palette.shadow}"/>
+            <rect x="255" y="92" width="130" height="52" rx="24" fill="${palette.glow}" opacity="0.86"/>
+          </g>`;
+      } else if (item.category === "tables") {
+        body = `
+          <g transform="translate(0 10)">
+            <ellipse cx="320" cy="314" rx="182" ry="26" fill="rgba(44,44,44,0.12)"/>
+            <rect x="184" y="134" width="272" height="40" rx="18" fill="${palette.accent}"/>
+            <rect x="212" y="174" width="22" height="126" rx="10" fill="${palette.shadow}"/>
+            <rect x="406" y="174" width="22" height="126" rx="10" fill="${palette.shadow}"/>
+            <rect x="300" y="174" width="20" height="126" rx="10" fill="${palette.base}"/>
+            <rect x="258" y="88" width="124" height="42" rx="20" fill="${palette.glow}" opacity="0.8"/>
+            <circle cx="318" cy="250" r="66" fill="${palette.base}" opacity="0.18"/>
+          </g>`;
+      } else {
+        body = `
+          <g transform="translate(0 8)">
+            <ellipse cx="320" cy="316" rx="176" ry="26" fill="rgba(44,44,44,0.12)"/>
+            <rect x="144" y="184" width="352" height="92" rx="34" fill="${palette.shadow}"/>
+            <rect x="182" y="112" width="276" height="112" rx="42" fill="${palette.base}"/>
+            <rect x="214" y="142" width="212" height="70" rx="28" fill="${palette.accent}"/>
+            <rect x="226" y="268" width="18" height="60" rx="9" fill="${palette.shadow}"/>
+            <rect x="396" y="268" width="18" height="60" rx="9" fill="${palette.shadow}"/>
+            <rect x="288" y="72" width="90" height="44" rx="22" fill="${palette.glow}" opacity="0.85"/>
+          </g>`;
+      }
+
+      const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" role="img" aria-label="${title} preview">
+        <defs>
+          <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#f8f1e7"/>
+            <stop offset="100%" stop-color="#d8c0a0"/>
+          </linearGradient>
+          <filter id="blurShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="12"/>
+          </filter>
+        </defs>
+        <rect width="640" height="420" fill="url(#bg)"/>
+        <circle cx="158" cy="94" r="88" fill="rgba(255,255,255,0.28)"/>
+        <circle cx="494" cy="108" r="118" fill="rgba(255,255,255,0.12)"/>
+        <ellipse cx="320" cy="330" rx="210" ry="42" fill="rgba(44,44,44,0.16)" filter="url(#blurShadow)"/>
+        ${body}
+        <rect x="28" y="28" width="584" height="364" rx="28" fill="none" stroke="rgba(255,255,255,0.24)"/>
+      </svg>`;
+
+      return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+    }
+
+    function renderProducts() {
+      const searchValue = currentSearch.toLowerCase().trim();
+      const visibleProducts = products.filter((item) => {
+        const passFilter = currentFilter === "all" || item.category === currentFilter;
+        const passSearch = !searchValue || item.name.toLowerCase().includes(searchValue);
+        return passFilter && passSearch;
+      });
+
+      productGrid.innerHTML = visibleProducts.map((item, idx) => {
+        const activeWish = wishlist.includes(item.id) ? "active" : "";
+        const oldPrice = item.oldPrice ? `<span class="old-price">${formatINR(item.oldPrice)}</span>` : "";
+        const stock = item.stock ? `<span class="stock">${item.stock}</span>` : "";
+        const thumbnailSrc = item.thumbnail ? encodeURI(item.thumbnail) : buildProductThumbnail(item);
+        const productMedia = `<div class="product-art ${item.art}">
+          <img class="product-thumb" src="${thumbnailSrc}" alt="${item.name} preview" loading="lazy" decoding="async">
+              <div class="preview-hint">3D View</div>
+              <div class="product-badges">${badgeTemplate(item)}</div>
+              <button class="wish-btn ${activeWish}" data-wish="${item.id}" aria-label="Toggle wishlist for ${item.name}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20s-7-4.4-9-8.2C1.5 8.9 3.2 5 7 5c2.1 0 3.3 1.1 5 3 1.7-1.9 2.9-3 5-3 3.8 0 5.5 3.9 4 6.8-2 3.8-9 8.2-9 8.2z"></path></svg>
+              </button>
+            </div>`;
+        return `
+        <article class="product-card reveal" data-category="${item.category}" data-name="${item.name.toLowerCase()}" style="transition-delay:${idx * 45}ms">
+          ${productMedia}
+          <div class="product-content">
+            <h3 class="product-name">${item.name}</h3>
+            <p class="material">${item.material}</p>
+            <div class="price-row"><span class="price">${formatINR(item.price)}</span>${oldPrice}</div>
+            <small class="emi">or ${formatINR(Math.round(item.price / 18))}/mo × 18</small>
+            <div class="rating"><span class="stars">${starTemplate()}${starTemplate()}${starTemplate()}${starTemplate()}${starTemplate()}</span>${item.rating} (${item.reviews} reviews)</div>
+            ${stock}
+            <div class="product-actions">
+              <button class="add-btn" data-add="${item.id}">Add to Cart</button>
+              <button class="ar-btn" onclick="openARModal(${item.id})">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3 4 7v10l8 4 8-4V7z"></path><path d="m4 7 8 4 8-4"></path><path d="v6"></path></svg>
+                3D View
+              </button>
+            </div>
+          </div>
+        </article>`;
+      }).join("");
+      observeReveal();
+      bindCardEvents();
+      updateProductVisibility();
+    }
+
+    function bindCardEvents() {
+      document.querySelectorAll("[data-add]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = Number(btn.dataset.add);
+          const found = cart.find((x) => x.id === id);
+          if (found) {
+            found.qty += 1;
+          } else {
+            const p = products.find((x) => x.id === id);
+            cart.push({ id: p.id, name: p.name, price: p.price, qty: 1 });
+          }
+          saveCart();
+          drawCart();
+          toast("Added to cart ✓");
+        });
+      });
+
+      document.querySelectorAll("[data-wish]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = Number(btn.dataset.wish);
+          if (wishlist.includes(id)) {
+            wishlist = wishlist.filter((x) => x !== id);
+            btn.classList.remove("active");
+            toast("Removed from wishlist");
+          } else {
+            wishlist.push(id);
+            btn.classList.add("active");
+            toast("Added to wishlist ♥");
+          }
+          localStorage.setItem("lumea-wishlist", JSON.stringify(wishlist));
+          updateWishlistCount();
+        });
+      });
+    }
+
+    function saveCart() {
+      sessionStorage.setItem("lumea-cart", JSON.stringify(cart));
+    }
+
+    function drawCart() {
+      cartCount.textContent = cart.reduce((sum, i) => sum + i.qty, 0);
+      if (!cart.length) {
+        cartList.innerHTML = "<p style='font-size:.9rem;color:#666;'>Your cart is empty.</p>";
+        subtotalEl.textContent = formatINR(0);
+        return;
+      }
+      cartList.innerHTML = cart.map((item) => `
+        <div class="cart-item">
+          <div class="cart-line"><strong>${item.name}</strong><span>${formatINR(item.price)}</span></div>
+          <div class="cart-line">
+            <span>Qty</span>
+            <span class="qty">
+              <button data-qty="dec" data-id="${item.id}" aria-label="Decrease quantity">-</button>
+              <span>${item.qty}</span>
+              <button data-qty="inc" data-id="${item.id}" aria-label="Increase quantity">+</button>
+            </span>
+          </div>
+        </div>
+      `).join("");
+
+      const subtotal = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+      subtotalEl.textContent = formatINR(subtotal);
+
+      cartList.querySelectorAll("[data-qty]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = Number(btn.dataset.id);
+          const item = cart.find((x) => x.id === id);
+          if (!item) return;
+          if (btn.dataset.qty === "inc") item.qty += 1;
+          if (btn.dataset.qty === "dec") item.qty -= 1;
+          cart = cart.filter((x) => x.qty > 0);
+          saveCart();
+          drawCart();
+        });
+      });
+    }
+
+    function updateWishlistCount() {
+      wishCount.textContent = wishlist.length;
+    }
+
+    function toast(message) {
+      const node = document.createElement("div");
+      node.className = "toast";
+      node.textContent = message;
+      toastWrap.appendChild(node);
+      setTimeout(() => {
+        node.style.opacity = "0";
+        node.style.transform = "translateY(8px)";
+      }, 1900);
+      setTimeout(() => node.remove(), 2300);
+    }
+
+    function updateProductVisibility() {
+      document.querySelectorAll(".filter-btn").forEach((x) => x.classList.toggle("active", x.dataset.filter === currentFilter));
+    }
+
+    function applyFilter(filter) {
+      currentFilter = filter;
+      updateProductVisibility();
+    }
+
+    function applySearch(term) {
+      currentSearch = term;
+      updateProductVisibility();
+    }
+
+    let _arOpen = false;
+    const _isMob = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    function openARModal(productIdOrName, explicitSrc) {
+      const product = typeof productIdOrName === "number"
+        ? products.find((p) => p.id === productIdOrName)
+        : products.find((p) => p.name === productIdOrName);
+
+      const src = explicitSrc || product?.model;
+      const displayName = product?.name || "3D Preview";
+
+      if (!src) { console.error('[AR] No model for:', productIdOrName); return; }
+
+      const v = document.getElementById('ar-viewer');
+      v.removeAttribute('src');
+      document.getElementById('ar-product-name').textContent = displayName;
+      document.getElementById('ar-status-text').innerHTML =
+        '<span class="ar-spin"></span>Loading...';
+
+      document.getElementById('ar-modal').style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      _arOpen = true;
+
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        v.setAttribute('src', src);
+      }));
+
+      v.addEventListener('progress', _arProg);
+      v.addEventListener('load',  _arDone, { once:true });
+      v.addEventListener('error', _arFail, { once:true });
+    }
+
+    function _arProg(e) {
+      const p = Math.round((e.detail.totalProgress||0)*100);
+      document.getElementById('ar-status-text').innerHTML =
+        '<span class="ar-spin"></span>' + p + '%';
+    }
+
+    function _arDone() {
+      document.getElementById('ar-viewer')
+        .removeEventListener('progress', _arProg);
+      document.getElementById('ar-status-text').innerHTML = _isMob
+        ? '✅ Tap <b>View in Your Room</b> for live AR'
+        : '✅ Loaded — drag to rotate · use phone for AR';
+    }
+
+    function _arFail() {
+      document.getElementById('ar-viewer')
+        .removeEventListener('progress', _arProg);
+      const src = document.getElementById('ar-viewer').getAttribute('src');
+      document.getElementById('ar-status-text').innerHTML = '⚠️ Failed to load';
+      console.error('[AR] ❌ Failed:', src);
+      console.error('[AR] Test this URL in browser: http://localhost:8080/' + src);
+    }
+
+    function closeARModal() {
+      document.getElementById('ar-viewer').removeAttribute('src');
+      document.getElementById('ar-viewer')
+        .removeEventListener('progress', _arProg);
+      document.getElementById('ar-modal').style.display = 'none';
+      document.body.style.overflow = '';
+      _arOpen = false;
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && _arOpen) closeARModal();
+    });
+
+    window.addEventListener('load', () => {
+      const arModalElement = document.getElementById('ar-modal');
+      if (arModalElement) {
+        arModalElement.addEventListener('click', function(e) {
+          if (e.target === this) closeARModal();
+        });
+      }
+      setTimeout(() => {
+        customElements.get('model-viewer')
+          ? console.log('%c✅ model-viewer OK','color:green')
+          : console.error('❌ model-viewer not loaded — fix <head> script');
+      }, 800);
+    });
+
+    function showLook(name) {
+      const list = looks[name] || [];
+      lookTitle.textContent = `Shop This Look · ${name.charAt(0).toUpperCase() + name.slice(1)}`;
+      lookItems.innerHTML = list.map((it) => `
+        <div class="look-item">
+          <span>${it.name}</span>
+          <button class="btn btn-outline" style="padding:7px 12px;">${it.price}</button>
+        </div>
+      `).join("");
+      lookDrawer.classList.add("open");
+      lookDrawer.setAttribute("aria-hidden", "false");
+    }
+
+    function closeLook() {
+      lookDrawer.classList.remove("open");
+      lookDrawer.setAttribute("aria-hidden", "true");
+    }
+
+    function observeReveal() {
+      const targets = document.querySelectorAll(".reveal");
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in-view");
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      targets.forEach((el, idx) => {
+        el.style.transitionDelay = `${(idx % 6) * 55}ms`;
+        observer.observe(el);
+      });
+    }
+
+    function initCursor() {
+      const cursor = document.querySelector(".cursor");
+      if (!cursor) return;
+      window.addEventListener("mousemove", (e) => {
+        cursor.style.left = `${e.clientX}px`;
+        cursor.style.top = `${e.clientY}px`;
+      });
+      document.querySelectorAll("button, a, input").forEach((el) => {
+        el.addEventListener("mouseenter", () => {
+          cursor.style.width = "44px";
+          cursor.style.height = "44px";
+        });
+        el.addEventListener("mouseleave", () => {
+          cursor.style.width = "34px";
+          cursor.style.height = "34px";
+        });
+      });
+    }
+
+    renderProducts();
+    drawCart();
+    updateWishlistCount();
+    observeReveal();
+    initCursor();
+
+    document.querySelectorAll("[data-open-ar]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const src = btn.dataset.openAr;
+        openARModal("3D Preview", src);
+      });
+    });
+
+    document.querySelectorAll(".filter-btn").forEach((btn) => {
+      btn.addEventListener("click", () => applyFilter(btn.dataset.filter));
+    });
+
+    document.getElementById("cartOpen").addEventListener("click", () => cartDrawer.classList.add("open"));
+    document.getElementById("cartClose").addEventListener("click", () => cartDrawer.classList.remove("open"));
+
+    document.getElementById("searchOpen").addEventListener("click", () => {
+      document.getElementById("searchOverlay").classList.add("open");
+      document.getElementById("searchInput").focus();
+    });
+
+    document.getElementById("searchClose").addEventListener("click", () => {
+      document.getElementById("searchOverlay").classList.remove("open");
+      document.getElementById("searchInput").value = "";
+      applyFilter("all");
+    });
+
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+      applySearch(e.target.value);
+    });
+
+    document.getElementById("checkoutBtn").addEventListener("click", () => {
+      toast("Order placed successfully ✓");
+    });
+
+    document.getElementById("newsletterForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      toast("Subscribed to Lumea Circle");
+      e.target.reset();
+    });
+
+    document.querySelectorAll("[data-look]").forEach((btn) => {
+      btn.addEventListener("click", () => showLook(btn.dataset.look));
+    });
+
+    document.getElementById("lookClose").addEventListener("click", closeLook);
+
+    window.addEventListener("scroll", () => {
+      navbar.classList.toggle("scrolled", window.scrollY > 18);
+    });
+
+    setInterval(() => {
+      const track = document.getElementById("testimonialTrack");
+      testimonialIndex = (testimonialIndex + 1) % 2;
+      track.style.transform = `translateX(-${testimonialIndex * 100}%)`;
+    }, 4000);
+
+    document.getElementById("loadMore").addEventListener("click", () => {
+      toast("All curated products are already loaded");
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeLook();
+        cartDrawer.classList.remove("open");
+        document.getElementById("searchOverlay").classList.remove("open");
+      }
+    });
+  </script>
+
+  <div id="ar-modal" style="display:none;position:fixed;inset:0;
+       z-index:99999;background:rgba(20,20,20,0.92);
+       backdrop-filter:blur(16px);align-items:center;
+       justify-content:center;padding:12px;">
+    <div style="background:#FAF7F2;border-radius:20px;width:100%;
+                max-width:660px;max-height:94vh;overflow:hidden;
+                display:flex;flex-direction:column;">
+
+      <div style="display:flex;align-items:center;
+                  justify-content:space-between;padding:16px 20px;
+                  border-bottom:1px solid #D4B896;">
+        <h3 id="ar-product-name"
+            style="margin:0;font-family:'Cormorant Garamond',serif;
+                   font-size:1.4rem;color:#2C2C2C;font-weight:400;">
+        </h3>
+        <button onclick="closeARModal()"
+                style="width:36px;height:36px;border-radius:50%;
+                       border:1.5px solid #D4B896;background:transparent;
+                       color:#6B7645;font-size:15px;cursor:pointer;">✕
+        </button>
+      </div>
+
+      <model-viewer
+        id="ar-viewer"
+        src=""
+        alt="3D sofa"
+        ar
+        ar-modes="webxr scene-viewer quick-look"
+        ar-scale="auto"
+        camera-controls
+        touch-action="pan-y"
+        auto-rotate
+        shadow-intensity="1.5"
+        exposure="1.1"
+        environment-image="neutral"
+        style="width:100%;height:55vh;min-height:300px;
+               background:linear-gradient(145deg,#F5EFE6,#EDE0CF);
+               --progress-bar-color:#6B7645;">
+        <button slot="ar-button"
+                style="position:absolute;bottom:16px;left:50%;
+                       transform:translateX(-50%);background:#6B7645;
+                       color:#FAF7F2;border:none;border-radius:100px;
+                       padding:14px 28px;font-family:'DM Sans',sans-serif;
+                       font-size:14px;font-weight:600;cursor:pointer;
+                       box-shadow:0 6px 20px rgba(107,118,69,0.45);">
+          📱 View in Your Room
+        </button>
+      </model-viewer>
+
+      <div id="ar-status"
+           style="padding:14px 20px;background:#EDE0CF;
+                  font-family:'DM Sans',sans-serif;font-size:13px;
+                  color:#4E5530;text-align:center;min-height:50px;
+                  display:flex;align-items:center;justify-content:center;">
+        <span id="ar-status-text">Ready</span>
+      </div>
+
+    </div>
+  </div>
+
+  <style>
+  @keyframes arSpin{to{transform:rotate(360deg)}}
+  .ar-spin{
+    display:inline-block;
+    width:13px;
+    height:13px;
+    border:2px solid #9aa56b;
+    border-top-color:#4e5530;
+    border-radius:50%;
+    margin-right:8px;
+    animation:arSpin .8s linear infinite;
+    vertical-align:-2px;
+  }
+  </style>
+</body>
+</html>
